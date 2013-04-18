@@ -1,0 +1,14 @@
+{application, primes,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib,
+                  prime_miner,
+                  frontman
+                 ]},
+  {mod, { primes_app, []}},
+  {env, []}
+ ]}.

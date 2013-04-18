@@ -1,0 +1,13 @@
+{application, prime_miner,
+ [
+  {description, "Discovers primes. Worth money?"},
+  {vsn, "1"},
+  {modules, [pm]},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { prime_miner_app, []}},
+  {env, []}
+ ]}.

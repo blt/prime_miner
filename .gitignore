@@ -1,0 +1,8 @@
+*.beam
+app.plt
+*.app
+rel/builds
+rel/primenode
+rel/previous_primenode
+.eunit
+*.tar.gz

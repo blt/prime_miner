@@ -1,0 +1,10 @@
+{"2",
+ %% Upgrade instructions from 1 to 2
+ [{"1", [
+         {update, prime_miner, {advanced, [from1to2]}}
+        ]}],
+ %% Downgrade instructions from 2 to 1
+ [{"1",[
+        {update, prime_miner, {advanced, [from2to1]}}
+       ]}]
+}.
