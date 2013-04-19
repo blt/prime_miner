@@ -5,7 +5,6 @@ ESCRIPT='/usr/bin/env escript'
 DTS=`date +"%Y%m%d%H%M%S"`
 
 mkdir -p rel/builds
-mkdir -p rel/releases
 
 if [ -h rel/primenode ]
 then
