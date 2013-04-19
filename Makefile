@@ -17,7 +17,7 @@ test:
 
 clean:
 	@rm -f erl_crash.dump rel/*primenode rel/primenode_*.tar.gz
-	@rm -r rel/builds
+	@rm -fr rel/builds
 	@$(REBAR) clean
 
 release: deps compile
