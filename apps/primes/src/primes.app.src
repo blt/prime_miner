@@ -6,8 +6,7 @@
   {applications, [
                   kernel,
                   stdlib,
-                  prime_miner,
-                  frontman
+                  prime_miner
                  ]},
   {mod, { primes_app, []}},
   {env, []}
