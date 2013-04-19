@@ -1,13 +1,13 @@
 # prime_miner
 
 This is an ongoing experiment in making Erlang/OTP no-downtime releases
-trivially and automatically. It's not quite working. Also, this project is still
-a bit hacky and odd.
+trivially and automatically. It's working within the confines of updating from
+base v1 to v2 only. This project is still a bit hacky and odd.
 
 The prime-miner is something of a joke. Look at
 `apps/prime_miner/prime_miner.erl` to understand why.
 
-## The Current Problem
+## The Aim
 
 This experiment is a success if we can:
 
@@ -22,19 +22,16 @@ This experiment is a success if we can:
 
 ```
 > make clean
-==> frontman (clean)
 ==> prime_miner (clean)
 ==> primes (clean)
 ==> rel (clean)
 ==> primes (clean)
 
 > make release
-==> frontman (get-deps)
 ==> prime_miner (get-deps)
 ==> primes (get-deps)
 ==> rel (get-deps)
 ==> primes (get-deps)
-==> frontman (compile)
 ==> prime_miner (compile)
 Compiled src/prime_miner_app.erl
 Compiled src/prime_miner_sup.erl
@@ -69,7 +66,7 @@ Eshell V5.9.2  (abort with ^G)
 (primenode@127.0.0.1)1> release_handler:which_releases().
 [{"primenode","1",
   ["kernel-2.15.2","stdlib-1.18.2","sasl-2.2.1",
-   "prime_miner-1","frontman-","primes-1","compiler-4.8.2",
+   "prime_miner-1","primes-1","compiler-4.8.2",
    "crypto-2.2","hipe-3.9.2","tools-2.6.8"],
   permanent}]
 (primenode@127.0.0.1)2>
@@ -112,16 +109,18 @@ index abd853b..722fd48 100644
           stdlib,
 ```
 
-and a new release:
+### Create a New Release Based on These Changes
+
+Rather than rely on rebar's automatic generation of appup files, `prime_miner`
+defines its own. I found it to be very difficult to reliably generate appup
+files with rebar that did the Right Thing always. To create a new release:
 
 ```
 > make release
-==> frontman (get-deps)
 ==> prime_miner (get-deps)
 ==> primes (get-deps)
 ==> rel (get-deps)
 ==> primes (get-deps)
-==> frontman (compile)
 ==> prime_miner (compile)
 ==> primes (compile)
 ==> rel (compile)
@@ -133,8 +132,6 @@ base release already created; time to update
 primenode_2 upgrade package created
 ```
 
-### Create a New Release Based on These Changes
-
 The Makefile uses `bin/upgrade.escript` to perform the usual release
 handler dance. First, confirm that the needed release tarball is in
 place:
@@ -144,89 +141,16 @@ place:
 1                  RELEASES           primenode_2.tar.gz start_erl.data
 ```
 
-Now, the escript:
+Now, run the update:
 
 ```
-> escript bin/upgrade.escript primenode@127.0.0.1 primenode primenode_2
-escript: exception error: no match of right hand side value
-                 {error,
-                     {{badmatch,{error,enoent}},
-                      [{erl_tar,default_options,0,
-                           [{file,"erl_tar.erl"},{line,440}]},
-                       {erl_tar,extract_opts,1,
-                           [{file,"erl_tar.erl"},{line,434}]},
-                       {erl_tar,extract,2,[{file,"erl_tar.erl"},{line,136}]},
-                       {release_handler,do_unpack_release,4,
-                           [{file,"release_handler.erl"},{line,834}]},
-                       {release_handler,handle_call,3,
-                           [{file,"release_handler.erl"},{line,588}]},
-                       {gen_server,handle_msg,5,
-                           [{file,"gen_server.erl"},{line,588}]},
-                       {proc_lib,init_p_do_apply,3,
-                           [{file,"proc_lib.erl"},{line,227}]}]}}
-```
-
-If I attach directly to the node and manually drive the release:
-
-```
-> make repl
+> make update
 ./rel/primenode/bin/primenode start &> /dev/null || true
-erl -name test -setcookie primenode -remsh primenode@127.0.0.1
-Erlang R15B02 (erts-5.9.2) [source] [64-bit] [smp:8:8] [async-threads:0] [hipe] [kernel-poll:false]
-
-Eshell V5.9.2  (abort with ^G)
-(primenode@127.0.0.1)1> TargetNode = 'primenode@127.0.0.1'.
-'primenode@127.0.0.1'
-(primenode@127.0.0.1)2>
-(primenode@127.0.0.1)2> Cookie = primenode.
-primenode
-(primenode@127.0.0.1)3>
-(primenode@127.0.0.1)3> ReleasePackage = "primenode_2".
-"primenode_2"
-(primenode@127.0.0.1)4> rpc:call(TargetNode, release_handler, unpack_release, [ReleasePackage], 6000).
-{error,{{badmatch,{error,enoent}},
-        [{erl_tar,default_options,0,
-                  [{file,"erl_tar.erl"},{line,440}]},
-         {erl_tar,extract_opts,1,[{file,"erl_tar.erl"},{line,434}]},
-         {erl_tar,extract,2,[{file,"erl_tar.erl"},{line,136}]},
-         {release_handler,do_unpack_release,4,
-                          [{file,"release_handler.erl"},{line,834}]},
-         {release_handler,handle_call,3,
-                          [{file,"release_handler.erl"},{line,588}]},
-         {gen_server,handle_msg,5,
-                     [{file,"gen_server.erl"},{line,588}]},
-         {proc_lib,init_p_do_apply,3,
-                   [{file,"proc_lib.erl"},{line,227}]}]}}
-(primenode@127.0.0.1)5> release_handler:unpack_release(ReleasePackage).
-{error,{{badmatch,{error,enoent}},
-        [{erl_tar,default_options,0,
-                  [{file,"erl_tar.erl"},{line,440}]},
-         {erl_tar,extract_opts,1,[{file,"erl_tar.erl"},{line,434}]},
-         {erl_tar,extract,2,[{file,"erl_tar.erl"},{line,136}]},
-         {release_handler,do_unpack_release,4,
-                          [{file,"release_handler.erl"},{line,834}]},
-         {release_handler,handle_call,3,
-                          [{file,"release_handler.erl"},{line,588}]},
-         {gen_server,handle_msg,5,
-                     [{file,"gen_server.erl"},{line,588}]},
-         {proc_lib,init_p_do_apply,3,
-                   [{file,"proc_lib.erl"},{line,227}]}]}}
-(primenode@127.0.0.1)6> release_handler:unpack_release("primenode_2.tar.gz").
-{error,{no_such_file,"/Users/blt/projects/us/troutwine/primes/rel/primenode/releases/primenode_2.tar.gz.tar.gz"}}
-(primenode@127.0.0.1)7> release_handler:unpack_release("primenode_2").
-{error,{{badmatch,{error,enoent}},
-        [{erl_tar,default_options,0,
-                  [{file,"erl_tar.erl"},{line,440}]},
-         {erl_tar,extract_opts,1,[{file,"erl_tar.erl"},{line,434}]},
-         {erl_tar,extract,2,[{file,"erl_tar.erl"},{line,136}]},
-         {release_handler,do_unpack_release,4,
-                          [{file,"release_handler.erl"},{line,834}]},
-         {release_handler,handle_call,3,
-                          [{file,"release_handler.erl"},{line,588}]},
-         {gen_server,handle_msg,5,
-                     [{file,"gen_server.erl"},{line,588}]},
-         {proc_lib,init_p_do_apply,3,
-                   [{file,"proc_lib.erl"},{line,227}]}]}}
+escript bin/upgrade.escript primenode@127.0.0.1 primenode primenode_2
+Unpacked Release "2"
+Installed Release "2"
+Made Release "2" Permanent
 ```
 
-Perhaps there's something wrong with the release generation?
+If we `make repl` as before we can request the release list to show that we are
+now on primenode v2.
